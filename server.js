@@ -3,6 +3,22 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
+/**
+ * 指定された拡張子に応じて、Content-Typeを返す
+ */
+function getContentType(filePath) {
+    const ext = path.extname(filePath);
+    let contentType = "";
+
+    if (ext === ".html") {
+        contentType = "text/html; charset=utf-8";
+    }
+    else if (ext === ".css") {
+        contentType = "text/css; charset=utf-8";
+    }
+    
+    return contentType;
+}
 
 /** 
  * HTTPサーバを作成する。
@@ -11,10 +27,7 @@ const path = require("path");
  */
 const server = http.createServer((req, res) => {
     // 受け付けたリクエストの詳細を表示
-    console.log("リクエストを受け付けました。");
-    console.log("method: ", req.method);
-    console.log("url: ", req.url);
-    console.log("==============================");
+    console.log("[request]method:" + req.method + "  uri:" + req.url);
 
     /**
      * リクエストURLに応じて返却対象のHTMLファイルを決定する
@@ -32,6 +45,9 @@ const server = http.createServer((req, res) => {
     else if (req.url === "/about") {
         filePath = path.join(__dirname, "public", "about.html");
     }
+    else if (req.url === "/style.css") {
+        filePath = path.join(__dirname, "public", "style.css");
+    }
     else {
         res.writeHead(404, { "content-type": "text/html; charset=utf-8" });
         res.end("<h1>404 Not Found</h1>");
@@ -48,8 +64,13 @@ const server = http.createServer((req, res) => {
             res.end("500 Internal Server Error");
             return;
         }
+        
+        /**
+         * 指定されたリクエストに応じて、Content-Typeを取得する
+         */
+        const contentType = getContentType(filePath);
 
-        res.writeHead(200, {"Content-Type": "text/html; charset=utf-8"});
+        res.writeHead(200, {"Content-Type": contentType});
         res.end(data);
     });
 });
